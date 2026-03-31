@@ -13,7 +13,7 @@ export default function SongListElement(props: Props) {
     return (
         <>
             <List.Item
-                style={props.isPlaying ? styles.selectedItem : null}
+                style={props.isPlaying ? styles.selectedItem : styles.item}
                 key={props.song.id}
                 title={<Text style={props.isPlaying ? styles.selectedTitle : null}>{props.song.title}</Text>}
                 descriptionEllipsizeMode={'middle'}
@@ -22,7 +22,7 @@ export default function SongListElement(props: Props) {
                         <Text numberOfLines={1} ellipsizeMode="tail" style={{ width: 200 }}>
                             {props.song.occurences[0].artist}
                         </Text>
-                        <Text numberOfLines={1} ellipsizeMode="tail" style={{ width: 200 }}>
+                        <Text numberOfLines={1} ellipsizeMode="tail" style={{ width: 200, opacity: 0.6, fontSize: 11 }}>
                             {props.song.occurences[0].platform}
                         </Text>
                     </View>
@@ -40,15 +40,26 @@ export default function SongListElement(props: Props) {
 }
 
 const styles = StyleSheet.create({
+    item: {
+        borderRadius: 8,
+        marginVertical: 2
+    },
     selectedItem: {
-        backgroundColor: '#444444',
-        borderRadius: 10
+        backgroundColor: '#2a2d31',
+        borderRadius: 8,
+        borderLeftWidth: 3,
+        borderLeftColor: 'rgb(165, 200, 255)',
+        marginVertical: 2
     },
     selectedTitle: {
-        color: 'lime'
+        color: 'rgb(165, 200, 255)',
+        fontWeight: '600'
     },
     thumbnail: {
-        width: 64,
-        marginLeft: 10
+        width: 56,
+        height: 56,
+        borderRadius: 4,
+        marginLeft: 10,
+        alignSelf: 'center'
     }
 })

@@ -1,7 +1,7 @@
 import MainLayout from '../layouts/MainLayout'
 import React, { useEffect, useRef, useState } from 'react'
 import { usePathname, useRouter } from 'expo-router'
-import { ActivityIndicator, Button, Divider, Modal, Portal, Text } from 'react-native-paper'
+import { ActivityIndicator, Button, Divider, Modal, Portal, Text, useTheme } from 'react-native-paper'
 import HeaderText from '../components/HeaderText'
 import { showErrorToast } from '../utils/ErrorUtils'
 import { getListController, getPartyController, getUserInfo } from '../utils/ApiUtils'
@@ -29,6 +29,7 @@ import AddSpotifyPlaylist from '../components/AddSpotifyPlaylist'
 
 export default function App() {
     const router = useRouter()
+    const theme = useTheme()
     let pathname = usePathname()
     let [initialLoading, setInitialLoading] = useState(true)
     let [showLoadingIndicator, setShowLoadingIndicator] = useState(false)
@@ -37,6 +38,7 @@ export default function App() {
     let [playlist, setPlaylist] = useState<CoflnetSongVoterModelsPartyPlaylistEntry[]>()
     let [currentSong, setCurrentSong] = useState<CoflnetSongVoterModelsSong>()
     let [isYoutubePlayerPlaying, setIsYoutubePlayerPlaying] = useState(true)
+    let [isPlaying, setIsPlaying] = useState(true)
     let [modalElementToShow, setModalElementToShow] = useState(null)
     let currentSongRef = useRef(currentSong)
     currentSongRef.current = currentSong
@@ -238,12 +240,16 @@ export default function App() {
             let playbackState = await getSpotifyPlaybackState()
             if (playbackState.is_playing) {
                 await pauseSpotifySongPlayback()
+                setIsPlaying(false)
             } else {
                 await resumeSpotifySongPlayback()
+                setIsPlaying(true)
             }
         }
         if (currentSong?.occurences[0].platform === 'youtube') {
-            setIsYoutubePlayerPlaying(!isYoutubePlayerPlaying)
+            const next = !isYoutubePlayerPlaying
+            setIsYoutubePlayerPlaying(next)
+            setIsPlaying(next)
         }
     }
 
@@ -309,7 +315,11 @@ export default function App() {
         <>
             <MainLayout>
                 <HeaderText text={party ? party.name || `Party` : null} />
-                {userInfo?.userId === party?.ownerId ? <Button onPress={togglePlayback}>Pause/Resume</Button> : null}
+                {userInfo?.userId === party?.ownerId ? (
+                    <Button icon={isPlaying ? 'pause' : 'play'} mode="outlined" onPress={togglePlayback} style={styles.playbackButton}>
+                        {isPlaying ? 'Pause' : 'Resume'}
+                    </Button>
+                ) : null}
                 {currentSong && currentSong.occurences[0].platform === 'youtube' && userInfo?.userId === party?.ownerId ? (
                     <YoutubePlayer videoId={currentSong.occurences[0].externalId} playing={isYoutubePlayerPlaying} onVideoHasEnded={startNextSong} />
                 ) : null}
@@ -326,36 +336,38 @@ export default function App() {
                                     let playlistElement = playlist.find(p => p.song.id === song.id)
                                     return (
                                         <>
-                                            <View style={{ display: 'flex', marginRight: 15 }}>
+                                            <View style={styles.voteContainer}>
                                                 <MaterialCommunityIcons
                                                     onPress={() => {
                                                         onLikeButtonPress(playlistElement)
                                                     }}
                                                     name={playlistElement.selfVote === 'up' ? 'thumb-up' : 'thumb-up-outline'}
-                                                    color={'lime'}
-                                                    size={20}
+                                                    color={playlistElement.selfVote === 'up' ? theme.colors.primary : theme.colors.onSurfaceVariant}
+                                                    size={22}
                                                 />
-                                                <Text>{playlistElement.upVotes || 0}</Text>
+                                                <Text style={{ color: theme.colors.onSurfaceVariant, fontSize: 12 }}>{playlistElement.upVotes || 0}</Text>
                                             </View>
-                                            <View style={{ display: 'flex' }}>
+                                            <View style={styles.voteContainer}>
                                                 <MaterialCommunityIcons
                                                     onPress={() => {
                                                         onDislikeButtonPress(playlistElement)
                                                     }}
                                                     name={playlistElement.selfVote === 'down' ? 'thumb-down' : 'thumb-down-outline'}
-                                                    color={'red'}
-                                                    size={20}
+                                                    color={playlistElement.selfVote === 'down' ? theme.colors.error : theme.colors.onSurfaceVariant}
+                                                    size={22}
                                                 />
-                                                <Text>{playlistElement.downVotes || 0}</Text>
+                                                <Text style={{ color: theme.colors.onSurfaceVariant, fontSize: 12 }}>{playlistElement.downVotes || 0}</Text>
                                             </View>
                                         </>
                                     )
                                 }}
                             />
                         </ScrollView>
+                        <Divider style={styles.divider} />
                         <View style={styles.buttonContainer}>
                             <Button
-                                textColor="white"
+                                icon="music-note-plus"
+                                mode="contained-tonal"
                                 onPress={() => {
                                     setModalElementToShow(
                                         <AddSong
@@ -366,53 +378,60 @@ export default function App() {
                                         />
                                     )
                                 }}
-                                style={{ ...styles.addButton, width: storage.contains(SPOTIFY_TOKEN) ? '30%' : '45%' }}
+                                style={styles.actionButton}
+                                compact
                             >
                                 Add Song
                             </Button>
-                            <Button
-                                textColor="white"
-                                onPress={() => {
-                                    setModalElementToShow(
-                                        <AddSpotifyPlaylist
-                                            onAfterPlaylistAdded={async playlist => {
-                                                try {
-                                                    let tracks = await getSpotifyTracksForPlaylist(playlist.id)
-                                                    let listController = await getListController()
-                                                    let userLists = (await listController.apiListsGet()).data
-                                                    let { data: newList } = await listController.apiListsListIdSongsSpotifyPost(
-                                                        userLists[0].id,
-                                                        tracks.map(trackEntry => trackEntry.track.id)
-                                                    )
-                                                    let partyController = await getPartyController()
-                                                    partyController.apiPartyAddPost(newList.songs.map(song => song.id))
+                            {storage.contains(SPOTIFY_TOKEN) ? (
+                                <Button
+                                    icon="playlist-plus"
+                                    mode="contained-tonal"
+                                    onPress={() => {
+                                        setModalElementToShow(
+                                            <AddSpotifyPlaylist
+                                                onAfterPlaylistAdded={async playlist => {
+                                                    try {
+                                                        let tracks = await getSpotifyTracksForPlaylist(playlist.id)
+                                                        let listController = await getListController()
+                                                        let userLists = (await listController.apiListsGet()).data
+                                                        let { data: newList } = await listController.apiListsListIdSongsSpotifyPost(
+                                                            userLists[0].id,
+                                                            tracks.map(trackEntry => trackEntry.track.id)
+                                                        )
+                                                        let partyController = await getPartyController()
+                                                        partyController.apiPartyAddPost(newList.songs.map(song => song.id))
 
-                                                    setModalElementToShow(null)
+                                                        setModalElementToShow(null)
 
-                                                    setPlaylist([])
-                                                    setShowLoadingIndicator(true)
-                                                    await loadSongs()
-                                                    setShowLoadingIndicator(false)
-                                                } catch (e) {
-                                                    showErrorToast(e)
-                                                }
-                                            }}
-                                        />
-                                    )
-                                }}
-                                style={{ ...styles.addButton, display: storage.contains(SPOTIFY_TOKEN) ? 'flex' : 'none' }}
-                            >
-                                Add Playlist
-                            </Button>
+                                                        setPlaylist([])
+                                                        setShowLoadingIndicator(true)
+                                                        await loadSongs()
+                                                        setShowLoadingIndicator(false)
+                                                    } catch (e) {
+                                                        showErrorToast(e)
+                                                    }
+                                                }}
+                                            />
+                                        )
+                                    }}
+                                    style={styles.actionButton}
+                                    compact
+                                >
+                                    Add Playlist
+                                </Button>
+                            ) : null}
                             <Button
-                                textColor="white"
+                                icon="share-variant"
+                                mode="contained-tonal"
                                 onPress={showInviteCode}
-                                style={{ ...styles.addButton, width: storage.contains(SPOTIFY_TOKEN) ? '30%' : '45%' }}
+                                style={styles.actionButton}
+                                compact
                             >
-                                Invite Code
+                                Invite
                             </Button>
                         </View>
-                        <Button textColor="white" onPress={leaveParty} style={styles.leaveButton}>
+                        <Button icon="exit-to-app" mode="contained" buttonColor={theme.colors.errorContainer} textColor={theme.colors.onErrorContainer} onPress={leaveParty} style={styles.leaveButton}>
                             Leave Party
                         </Button>
                     </>
@@ -438,19 +457,27 @@ export default function App() {
 const styles = StyleSheet.create({
     leaveButton: {
         width: '100%',
-        display: 'flex',
-        backgroundColor: 'red'
+        marginTop: 8
     },
-    addButton: {
-        width: '30%',
-        backgroundColor: 'blue'
+    actionButton: {
+        flex: 1,
+        marginHorizontal: 4
     },
     buttonContainer: {
-        minHeight: 40,
-        flex: 1,
-        justifyContent: 'space-evenly',
         flexDirection: 'row',
-        marginBottom: 10,
-        marginTop: 10
+        marginBottom: 8,
+        marginTop: 4
+    },
+    playbackButton: {
+        marginBottom: 8,
+        alignSelf: 'center'
+    },
+    divider: {
+        marginVertical: 8
+    },
+    voteContainer: {
+        alignItems: 'center',
+        marginHorizontal: 4,
+        justifyContent: 'center'
     }
 })

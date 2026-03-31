@@ -12,7 +12,7 @@ export default function MainLayout(props: Props) {
 
     return (
         <>
-            <StatusBar style="dark" />
+            <StatusBar style="light" />
             <View style={{ ...styles.view, ...globalStyles.container }}>
                 <View style={{ ...styles.container }}>{props.children}</View>
                 <View style={styles.footer}>
