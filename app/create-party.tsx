@@ -1,4 +1,4 @@
-import { Button, Divider, HelperText, Switch, Text, TextInput, useTheme } from 'react-native-paper'
+import { Button, Divider, HelperText, Surface, Switch, Text, TextInput, useTheme } from 'react-native-paper'
 import MainLayout from '../layouts/MainLayout'
 import { StyleSheet, View } from 'react-native'
 import { useState } from 'react'
@@ -10,6 +10,7 @@ import { CURRENT_PARTY, SPOTIFY_TOKEN, storage } from '../utils/StorageUtils'
 import { showErrorToast } from '../utils/ErrorUtils'
 import { router } from 'expo-router'
 import { CoflnetSongVoterModelsSongPlatform } from '../generated'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 
 export default function App() {
     let theme = useTheme()
@@ -65,36 +66,39 @@ export default function App() {
                     <HeaderText text="Create Party" />
                     <View style={{ marginBottom: 20 }}>
                         <TextInput
-                            label="Title"
+                            label="Party Name"
                             error={partyTitle === ''}
                             style={styles.textInput}
                             mode="outlined"
                             onChangeText={text => setPartyTitle(text)}
                         />
                         <HelperText type="error" visible={partyTitle === ''}>
-                            Please enter a party title
+                            Please enter a party name
                         </HelperText>
                     </View>
-                    <Text style={{ ...theme.fonts.headlineSmall }}>Music Platforms</Text>
-                    <View>
+                    <Text style={{ ...theme.fonts.titleMedium, marginBottom: 12 }}>Music Platforms</Text>
+                    <Surface style={styles.platformCard} elevation={1}>
                         <View style={styles.row}>
-                            <Text>Use Spotify</Text>
-                            <Switch disabled={!hasSpotifyConnected} value={useSpotify} onValueChange={setUseSpotify} />
+                            <MaterialCommunityIcons name="spotify" size={24} color="#1DB954" style={styles.platformIcon} />
+                            <Text style={{ flex: 1, ...theme.fonts.bodyLarge }}>Spotify</Text>
                             {!hasSpotifyConnected ? (
                                 <SpotifyLogin
                                     onAfterLogin={() => {
                                         setHasSpotifyConnected(true)
                                     }}
                                 />
-                            ) : null}
+                            ) : (
+                                <Switch value={useSpotify} onValueChange={setUseSpotify} />
+                            )}
                         </View>
-                    </View>
-                    <View style={styles.row}>
-                        <Text>Use Youtube</Text>
-                        <Switch value={useYoutube} onValueChange={setUseYoutube} />
-                    </View>
-                    <Divider />
-                    <Button mode="contained" onPress={onPartyCreate} loading={isCreatingParty} disabled={isCreatingParty}>
+                        <Divider />
+                        <View style={styles.row}>
+                            <MaterialCommunityIcons name="youtube" size={24} color="#FF0000" style={styles.platformIcon} />
+                            <Text style={{ flex: 1, ...theme.fonts.bodyLarge }}>YouTube</Text>
+                            <Switch value={useYoutube} onValueChange={setUseYoutube} />
+                        </View>
+                    </Surface>
+                    <Button mode="contained" icon="party-popper" onPress={onPartyCreate} loading={isCreatingParty} disabled={isCreatingParty} style={styles.createButton}>
                         Create Party
                     </Button>
                 </View>
@@ -107,10 +111,21 @@ const styles = StyleSheet.create({
     textInput: {
         marginTop: 3
     },
+    platformCard: {
+        borderRadius: 12,
+        marginBottom: 24,
+        overflow: 'hidden'
+    },
     row: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 8,
+        paddingVertical: 12,
         paddingHorizontal: 16
+    },
+    platformIcon: {
+        marginRight: 12
+    },
+    createButton: {
+        borderRadius: 12
     }
 })

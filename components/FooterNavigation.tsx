@@ -1,7 +1,7 @@
 import React from 'react'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
-import { Link, router, usePathname, useRouter } from 'expo-router'
-import { Pressable, View } from 'react-native'
+import { router, usePathname } from 'expo-router'
+import { View } from 'react-native'
 import { Text, TouchableRipple, useTheme } from 'react-native-paper'
 import { globalStyles } from '../styles/globalStyles'
 
@@ -51,16 +51,25 @@ export function FooterNavigation(props: Props) {
 
     return (
         <View style={{ backgroundColor: theme.colors.secondaryContainer, display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly' }}>
-            {routes.map(route => (
-                <View style={{ flex: 1 }}>
-                    <TouchableRipple onPress={e => router.replace(route.href)} rippleColor="rgba(0, 0, 0, .32)" borderless={true}>
-                        <View style={globalStyles.horizontalCenter}>
-                            <MaterialCommunityIcons name={isSelected(route) ? route.selectedIcon : route.icon} size={25} />
-                            <Text style={{ fontSize: 18, color: theme.colors.onSecondaryContainer }}>{route.label}</Text>
-                        </View>
-                    </TouchableRipple>
-                </View>
-            ))}
+            {routes.map(route => {
+                const selected = isSelected(route)
+                return (
+                    <View key={route.href} style={{ flex: 1 }}>
+                        <TouchableRipple onPress={() => router.replace(route.href)} rippleColor="rgba(0, 0, 0, .32)" borderless={true}>
+                            <View style={globalStyles.horizontalCenter}>
+                                <View style={selected ? { backgroundColor: theme.colors.primaryContainer, borderRadius: 16, paddingHorizontal: 16, paddingVertical: 2, marginTop: 4 } : { paddingHorizontal: 16, paddingVertical: 2, marginTop: 4 }}>
+                                    <MaterialCommunityIcons
+                                        name={selected ? route.selectedIcon : route.icon}
+                                        size={25}
+                                        color={selected ? theme.colors.onPrimaryContainer : theme.colors.onSecondaryContainer}
+                                    />
+                                </View>
+                                <Text style={{ fontSize: 12, color: selected ? theme.colors.primary : theme.colors.onSecondaryContainer, marginBottom: 4, fontWeight: selected ? '700' : '400' }}>{route.label}</Text>
+                            </View>
+                        </TouchableRipple>
+                    </View>
+                )
+            })}
         </View>
     )
 }

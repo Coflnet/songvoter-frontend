@@ -1,10 +1,11 @@
-import { Text, useTheme } from 'react-native-paper'
+import { Divider, Surface, Text, useTheme } from 'react-native-paper'
 import MainLayout from '../layouts/MainLayout'
 import { StyleSheet, View } from 'react-native'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import GoogleLogin from '../components/GoogleLogin'
 import SpotifyLogin from '../components/SpotifyLogin'
 import HeaderText from '../components/HeaderText'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 
 export default function App() {
     let theme = useTheme()
@@ -16,20 +17,24 @@ export default function App() {
             <MainLayout>
                 <View style={styles.container}>
                     <HeaderText text="Account" />
-                    <View>
-                        <View style={styles.accountBox}>
-                            <Text style={{ width: '30%', ...theme.fonts.labelLarge }}>Google</Text>
-                            <View style={{ width: '50%' }}>
+                    <Text style={{ ...theme.fonts.titleMedium, marginBottom: 12 }}>Connected Services</Text>
+                    <Surface style={styles.serviceCard} elevation={1}>
+                        <View style={styles.serviceRow}>
+                            <MaterialCommunityIcons name="google" size={24} color={theme.colors.primary} style={styles.serviceIcon} />
+                            <Text style={{ flex: 1, ...theme.fonts.bodyLarge }}>Google</Text>
+                            <View style={styles.loginButton}>
                                 <GoogleLogin />
                             </View>
                         </View>
-                        <View style={styles.accountBox}>
-                            <Text style={{ width: '30%', ...theme.fonts.labelLarge }}>Spotify</Text>
-                            <View style={{ width: '50%' }}>
+                        <Divider />
+                        <View style={styles.serviceRow}>
+                            <MaterialCommunityIcons name="spotify" size={24} color="#1DB954" style={styles.serviceIcon} />
+                            <Text style={{ flex: 1, ...theme.fonts.bodyLarge }}>Spotify</Text>
+                            <View style={styles.loginButton}>
                                 <SpotifyLogin />
                             </View>
                         </View>
-                    </View>
+                    </Surface>
                 </View>
             </MainLayout>
         </>
@@ -37,11 +42,22 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-    accountBox: {
-        display: 'flex',
-        flexDirection: 'row',
-        height: 60,
-        marginBottom: 15
+    container: {},
+    serviceCard: {
+        borderRadius: 12,
+        overflow: 'hidden'
     },
-    container: {}
+    serviceRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        minHeight: 64
+    },
+    serviceIcon: {
+        marginRight: 12
+    },
+    loginButton: {
+        maxWidth: '50%'
+    }
 })

@@ -1,11 +1,14 @@
-import { StyleSheet, View } from 'react-native'
+import { View } from 'react-native'
 import MainLayout from '../layouts/MainLayout'
 import HeaderText from '../components/HeaderText'
 import GoogleLogin from '../components/GoogleLogin'
 import { globalStyles } from '../styles/globalStyles'
 import { router } from 'expo-router'
+import { Text, useTheme } from 'react-native-paper'
 
 export default function GoogleSigninPage() {
+    const theme = useTheme()
+
     function onAfterLogin() {
         router.push('/')
     }
@@ -14,33 +17,13 @@ export default function GoogleSigninPage() {
         <>
             <MainLayout routes={[]}>
                 <View style={globalStyles.fullCenterContainer}>
-                    <HeaderText text={'Login'} />
+                    <HeaderText text={'SongVoter'} />
+                    <Text style={{ ...theme.fonts.bodyLarge, color: theme.colors.onSurfaceVariant, marginBottom: 32, textAlign: 'center' }}>
+                        Sign in to start or join a party
+                    </Text>
                     <GoogleLogin onAfterLogin={onAfterLogin} />
                 </View>
             </MainLayout>
         </>
     )
 }
-
-const styles = StyleSheet.create({
-    leaveButton: {
-        width: '100%',
-        display: 'flex',
-        backgroundColor: 'red'
-    },
-    addSongsButton: {
-        width: '45%',
-        backgroundColor: 'blue'
-    },
-    inviteButton: {
-        width: '45%',
-        backgroundColor: 'blue'
-    },
-    buttonContainer: {
-        flex: 1,
-        justifyContent: 'space-evenly',
-        flexDirection: 'row',
-        marginBottom: 10,
-        marginTop: 10
-    }
-})

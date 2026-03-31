@@ -1,8 +1,8 @@
 import MainLayout from '../layouts/MainLayout'
-import { Link, Redirect, useRouter } from 'expo-router'
-import React, { useEffect, useState } from 'react'
+import { Redirect, useRouter } from 'expo-router'
+import React, { useEffect } from 'react'
 import { CURRENT_PARTY, GOOGLE_AUTH_OBJECT, storage } from '../utils/StorageUtils'
-import { ActivityIndicator, Button, useTheme } from 'react-native-paper'
+import { Button, Text, useTheme } from 'react-native-paper'
 import { View, StyleSheet, Linking } from 'react-native'
 import { globalStyles } from '../styles/globalStyles'
 import { showErrorToast } from '../utils/ErrorUtils'
@@ -12,6 +12,7 @@ import Toast from 'react-native-toast-message'
 
 export default function App() {
     const router = useRouter()
+    const theme = useTheme()
 
     useEffect(() => {
         checkDeeplinkIfUserIsInParty()
@@ -47,22 +48,29 @@ export default function App() {
             <MainLayout>
                 <View style={globalStyles.fullCenterContainer}>
                     <HeaderText text="SongVoter" />
+                    <Text style={{ ...theme.fonts.bodyLarge, color: theme.colors.onSurfaceVariant, marginBottom: 40, textAlign: 'center' }}>
+                        Vote on songs together with your friends
+                    </Text>
                     <Button
                         mode="contained"
+                        icon="party-popper"
                         onPress={() => {
                             router.push('/create-party')
                         }}
                         style={styles.button}
+                        contentStyle={styles.buttonContent}
                     >
                         Create Party
                     </Button>
 
                     <Button
-                        mode="contained"
+                        mode="outlined"
+                        icon="qrcode-scan"
                         onPress={() => {
                             router.push('/join-party')
                         }}
                         style={styles.button}
+                        contentStyle={styles.buttonContent}
                     >
                         Join Party
                     </Button>
@@ -74,7 +82,11 @@ export default function App() {
 
 const styles = StyleSheet.create({
     button: {
-        margin: 5,
-        width: '50%'
+        margin: 8,
+        width: '70%',
+        borderRadius: 12
+    },
+    buttonContent: {
+        paddingVertical: 6
     }
 })

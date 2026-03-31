@@ -1,4 +1,4 @@
-import { ActivityIndicator, Button, IconButton, Text, useTheme } from 'react-native-paper'
+import { ActivityIndicator, Button, Surface, Text, useTheme } from 'react-native-paper'
 import MainLayout from '../layouts/MainLayout'
 import { StyleSheet, View } from 'react-native'
 import { useEffect, useState } from 'react'
@@ -9,11 +9,12 @@ import HeaderText from '../components/HeaderText'
 import { getPartyController } from '../utils/ApiUtils'
 import { useRouter } from 'expo-router'
 import * as Clipboard from 'expo-clipboard'
-import { CURRENT_PARTY, storage } from '../utils/StorageUtils'
 import { Toast } from 'react-native-toast-message/lib/src/Toast'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 
 export default function App() {
     let router = useRouter()
+    let theme = useTheme()
     let [inviteLink, setInviteLink] = useState('https://songvoter.party')
     let [isLoading, setIsLoading] = useState(false)
 
@@ -48,28 +49,45 @@ export default function App() {
 
     async function onCopyPress() {
         await Clipboard.setStringAsync(inviteLink)
+        Toast.show({
+            type: 'success',
+            text1: 'Invite link copied!'
+        })
     }
+
+    const inviteCode = inviteLink.includes('/invite/') ? inviteLink.split('/invite/')[1] : inviteLink
 
     return (
         <>
             <MainLayout>
                 <View style={{ ...globalStyles.fullCenterContainer }}>
-                    <HeaderText text="Invite people to your party" />
+                    <HeaderText text="Invite Friends" />
                     {isLoading ? (
                         <ActivityIndicator size="large" />
                     ) : (
                         <>
-                            <QRCode value={inviteLink} size={200} quietZone={10} />
-                            <View>
-                                <View style={styles.joinCodeContainer}>
-                                    <Text style={styles.joinCode}>
-                                        <Text style={{ fontWeight: '800' }}>Invite: </Text>
-                                        {inviteLink}
+                            <Surface style={styles.qrContainer} elevation={2}>
+                                <QRCode value={inviteLink} size={200} quietZone={10} />
+                            </Surface>
+                            <Surface style={styles.codeCard} elevation={1}>
+                                <Text style={{ ...theme.fonts.labelMedium, color: theme.colors.onSurfaceVariant, marginBottom: 4 }}>
+                                    Invite Code
+                                </Text>
+                                <View style={styles.codeRow}>
+                                    <Text style={{ ...theme.fonts.titleMedium, flex: 1, color: theme.colors.onSurface }} selectable>
+                                        {inviteCode}
                                     </Text>
-                                    <IconButton icon="content-copy" style={{ marginTop: 15 }} onPress={onCopyPress} />
+                                    <MaterialCommunityIcons
+                                        name="content-copy"
+                                        size={22}
+                                        color={theme.colors.primary}
+                                        onPress={onCopyPress}
+                                    />
                                 </View>
-                                <Button onPress={navigateToOverview}>To Overview</Button>
-                            </View>
+                            </Surface>
+                            <Button mode="contained" icon="arrow-right" onPress={navigateToOverview} style={styles.button}>
+                                Go to Party
+                            </Button>
                         </>
                     )}
                 </View>
@@ -79,18 +97,23 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
+    qrContainer: {
+        padding: 16,
+        borderRadius: 16,
+        marginBottom: 24
+    },
+    codeCard: {
+        padding: 16,
+        borderRadius: 12,
+        width: '90%',
+        marginBottom: 24
+    },
+    codeRow: {
+        flexDirection: 'row',
+        alignItems: 'center'
+    },
     button: {
-        marginTop: 20,
-        width: '50%'
-    },
-    joinCode: {
-        marginTop: 15,
-        color: 'white'
-    },
-    joinCodeContainer: {
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        flexDirection: 'row'
+        borderRadius: 12,
+        width: '80%'
     }
 })
